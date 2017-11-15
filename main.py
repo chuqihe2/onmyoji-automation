@@ -19,29 +19,62 @@ def handler(signum, frame):
 # Set the SIGINT handler to terminate the process cleanly.
 signal.signal(signal.SIGINT, handler)
 
-# =========================================
-# ========= All state identifiers =========
-# =========================================
+def nlls():
+    # =========================================
+    # ========= All state identifiers =========
+    # =========================================
 
-# The state where we should choose YH difficulty level and start the fight.
-# While waiting, this state might cover the fighting process, in which case we need to repeatedly target the monsters.
-YH_DIFFICULTY_LEVEL = 'yh_difficulty_level'
-YH_DIFFICULTY_LEVEL_CLICK_TARGET = (1380, 580)
-fscm.add_state(YH_DIFFICULTY_LEVEL, YH_DIFFICULTY_LEVEL_CLICK_TARGET)
+    REST_CLICK_POS = (2280, 450)
 
-# The state where we should set ready to start the actual fight.
-YH_READY = 'yh_ready'
-fscm.add_state(YH_READY)
+    INITIAL_OR_ZD = 'initial_or_zu_dui'
+    fscm.add_state(INITIAL_OR_ZD, repeated_click_pos=REST_CLICK_POS)
 
-# ===============================================
-# ========= FSCM transition definitions =========
-# ===============================================
+    NLLS = 'nlls'
+    fscm.add_state(NLLS, repeated_click_pos=REST_CLICK_POS)
 
-fscm.add_transition(YH_DIFFICULTY_LEVEL, YH_DIFFICULTY_LEVEL, get_image_path('yuhun_level.png'))
-fscm.add_transition(YH_DIFFICULTY_LEVEL, YH_READY, get_image_path('yuhun_start.png'))
-fscm.add_transition(YH_READY, YH_DIFFICULTY_LEVEL, get_image_path('ready.png'))
+    WAIT = 'wait'
+    fscm.add_state(WAIT, repeated_click_pos=REST_CLICK_POS)
+
+    # ===============================================
+    # ========= FSCM transition definitions =========
+    # ===============================================
+
+    fscm.add_transition(INITIAL_OR_ZD, INITIAL_OR_ZD, get_image_path('zudui.png'))
+    fscm.add_transition(INITIAL_OR_ZD, NLLS, get_image_path('nlls.png'))
+    fscm.add_transition(NLLS, WAIT, get_image_path('auto_queue.png'))
+    fscm.add_transition(WAIT, INITIAL_OR_ZD, get_image_path('ready.png'))
+
+    return INITIAL_OR_ZD
+
+def hun10():
+    # =========================================
+    # ========= All state identifiers =========
+    # =========================================
+
+    # The state where we should choose YH difficulty level and start the fight.
+    # While waiting, this state might cover the fighting process, in which case we need to repeatedly target the monsters.
+    YH_DIFFICULTY_LEVEL = 'yh_difficulty_level'
+    YH_DIFFICULTY_LEVEL_CLICK_TARGET = (1380, 580)
+    fscm.add_state(YH_DIFFICULTY_LEVEL, YH_DIFFICULTY_LEVEL_CLICK_TARGET)
+
+    # The state where we should set ready to start the actual fight.
+    YH_READY = 'yh_ready'
+    fscm.add_state(YH_READY)
+
+    # ===============================================
+    # ========= FSCM transition definitions =========
+    # ===============================================
+
+    fscm.add_transition(YH_DIFFICULTY_LEVEL, YH_DIFFICULTY_LEVEL, get_image_path('yuhun_level.png'))
+    fscm.add_transition(YH_DIFFICULTY_LEVEL, YH_READY, get_image_path('yuhun_start.png'))
+    fscm.add_transition(YH_READY, YH_DIFFICULTY_LEVEL, get_image_path('ready.png'))
+
+    return YH_DIFFICULTY_LEVEL
+
 
 try:
-    fscm.run(YH_DIFFICULTY_LEVEL)
-except:
+    initial_state = nlls()
+    fscm.run(initial_state)
+except Exception as err:
+    print(err)
     fscm.die()
